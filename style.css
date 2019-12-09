@@ -1,0 +1,67 @@
+.digit-span-text {
+    /* untuk number stimulus display*/
+    text-align: center;
+    font-size: 100px;
+    position: relative;
+    font-weight: 700;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+
+/* css for numpad */
+.square {
+    float: left;
+    position: relative;
+    width: 30%;
+    height: 30%; /* = width for a 1:1 aspect ratio */
+    margin: 1.66%;
+    background-color: white;
+    border-color: black;
+    overflow: hidden;
+    color: black;
+    border-radius: 15px;
+}
+
+.submit_button, .clear_button {
+    float: left;
+    position: relative;
+    width: 47%;
+    height: 15%; /* = width for a 1:1 aspect ratio */
+    margin: 1.5%;
+    background-color: white;
+    border-color: black;
+    overflow: hidden;
+    color: black;
+    border-radius: 15px;
+    font-size: 20px;
+}
+
+.square:hover, .submit_button:hover, .clear_button:hover {
+	color: red;
+}
+
+.square:active, .submit_button:active, .clear_button:active {
+	background-color: black;
+}
+/* numbr dalam kotak response*/
+.numbers {
+    font-family: sans-serif;
+    font-weight: 900;
+    text-align: center;
+    font-size: 70px;
+    position: relative;
+    top: 50%;
+}
+/*Box untuk response*/
+.numbox {
+  width: 50vw;
+  height: 50vw;
+  position:absolute;
+  top:50%;
+  left:50%;
+  margin-right:-50%;
+  transform: translate(-50%,-50%);
+}

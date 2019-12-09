@@ -1,0 +1,1115 @@
+﻿<!DOCTYPE html><html class=''>
+<head>
+    <meta charset='UTF-8'>
+    <meta name="robots" content="noindex">
+    <title>The Experiment Factory: Digit Span</title>
+    
+<link rel='stylesheet' type='text/css' href='jspsych.css'>
+<link rel='stylesheet' type='text/css' href='default_style.css'>
+<link rel='stylesheet' type='text/css' href='style.css'>
+</head>
+
+<body>
+
+    <!-- <script type="text/javascript">var load_vis=3;</script> -->
+
+    <script src='js/jquery.min.js'></script>
+    <script src='js/math.min.js'></script>
+    <script src='js/jspsych/jspsych.js'></script>
+    <script src='js/jspsych/plugins/jspsych-text.js'></script>
+    <script src='js/jspsych/poldrack_plugins/jspsych-poldrack-text.js'></script>
+    <script src='js/jspsych/poldrack_plugins/jspsych-poldrack-instructions.js'></script>
+    <script src='js/jspsych/poldrack_plugins/jspsych-attention-check.js'></script>
+    <script src='js/jspsych/poldrack_plugins/jspsych-poldrack-multi-stim-multi-response.js'></script>
+    <script src='js/jspsych/poldrack_plugins/jspsych-poldrack-single-stim.js'></script>
+    <script src='js/jspsych/plugins/jspsych-survey-text.js'></script>
+    <script src='js/jspsych/poldrack_plugins/jspsych-single-stim-button.js'></script>
+    <script src='js/jspsych/poldrack_plugins/poldrack_utils.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
+    <!--<script src='experiment.js'></script>-->
+    <!--<script src='audio.js'></script>-->
+    <!--<script src='audio_exp_test.js'></script>-->
+    <script type="text/javascript">
+
+    function getValue()
+    {
+
+        $.ajax({
+                     type: "GET",
+                     url: 'http://127.0.0.1:5000/view_visual/player1/21/13.1558',
+                     success: function(response){
+                        console.log(typeof response)
+                        var json = JSON.stringify(response);
+                        load_vis = response.load_vis;
+                        console.log(typeof json)
+                        //console.log("load: "+typeof load_vis)
+                        //return load_vis;
+                         // alert(response);
+                     },
+                     error: function() {
+                        alert('Error occured');
+                    }
+              });
+    }
+
+    function doTheThing() {
+          return new Promise((resolve, reject) => {
+            $.ajax({
+              type: "GET",
+              url: 'http://127.0.0.1:5000/view_visual/player1/21/13.1558',
+              success: function(response) {
+                //console.log("Response : "+ response)
+                load_vis = response.load_vis;
+                //console.log("load: "+typeof load_vis)
+                //return load_vis;
+                resolve(response)
+              },
+              error: function(error) {
+                reject(error)
+              },
+            })
+          })
+        }
+    doTheThing()
+          .then(data => {
+            //console.log(response)
+            doSomethingElse()
+          })
+          .catch(error => {
+            //console.log(error)
+          })
+
+ /*   
+// get return ajax object
+var ajaxObj = getValue(load_vis);
+// store ajax response in var
+var ajaxResponse = ajaxObj.responseText;
+// check ajax response*/
+
+
+
+        function getAverageScore(data_list, trial_id) {
+            var score = 0;
+            var trial = 0;
+            for (var i = 0; i < data_list.length; i++) {
+                if (data_list[i].trial_id == trial_id) {
+                    score += data_list[i].score;
+                    console.log("score: " + score);
+                    console.log("data list: " + data_list[i].score);
+                    trial++;
+                }
+            }
+            score = (score / trial) * 100;
+            console.log("calculation of score: " + score)
+            return score;
+        }
+
+    function getAverageDuration(data_list,trial_id){
+        var duration=0;
+        var trial=0;
+        for(var i=0;i<data_list.length;i++){
+	        if(data_list[i].trial_id == trial_id){
+		        duration += data_list[i].stim_duration;
+		        trial++;
+	        }
+        }
+        duration = duration / trial;
+        console.log("calculation of dur: " + duration)
+        return duration;
+    }
+
+
+        $(document).ready(function () {
+
+            jsPsych.init({
+                timeline: digit_span_experiment,
+                display_element: "getDisplayElement",
+                fullscreen: true,
+                on_trial_finish: function (data) {
+                    addID('digit-span')
+                },
+
+                on_finish: function (data) {
+
+                    var data_list = jsPsych.data.getTrialsOfType('single-stim-button');
+                    console.log("Data Obj : " + data_list)
+
+                    var raw_username = jsPsych.data.getTrialsOfType('survey-text')[0].responses;
+                    var parseUsername = JSON.parse(raw_username);
+                    console.log(parseUsername.Q0)
+                    var username = parseUsername.Q0;
+
+                    var avg_audio_score = getAverageScore(data_list, 'response_audio');
+                    console.log("average_audio_score : " + avg_audio_score);
+                    var avg_audio_duration = getAverageDuration(data_list, 'response_audio') / 1000;
+                    console.log("average audio duration:," + avg_audio_duration);
+
+                    var avg_visual_score = getAverageScore(data_list,'response_visual');
+                    console.log("average_visual_score : " + avg_visual_score);
+                    var avg_visual_duration = getAverageDuration(data_list, 'response_audio') / 1000;
+                    console.log("average visual duration: " + avg_visual_duration);
+
+                    
+                    //for training
+                    var avg_train_audio_score = getAverageScore(data_list, 'response_train_audio');
+                    console.log("avg_train_audio_score : " + avg_train_audio_score);
+                    var avg_train_visual_score = getAverageScore(data_list,'response_train_visual');
+                    console.log("avg_train_visual_score : " + avg_train_visual_score);
+
+                    // Serialize the data
+                    var promise = new Promise(function (resolve, reject) {
+                        var data = jsPsych.data.dataAsJSON();
+                        resolve(data);
+                    })
+
+                    promise.then(function (data) {
+
+                        $.ajax({
+                            type: "GET",
+                            url: 'http://127.0.0.1:5000', // make sure server is running
+                            success: function () { /*document.location = "/next"*/ },
+                            dataType: "application/json",
+
+                            // Endpoint not running, local save
+                            error: function (err) {
+                                //part rina
+                                var url = "http://127.0.0.1:5000/finish/" + username + "/" + avg_visual_score + "/" + avg_visual_duration + "/" + avg_audio_score + "/" + avg_audio_duration;
+
+                                //part iqa
+                                //var url = "http://127.0.0.1:5000/finish/view_score/" + username + "/" + avg_train_visual_score + "/" + avg_train_audio_score;
+                                if (err.status == 200) {
+                                    document.location = url; //navigate user to the API endpoint
+                                } else {
+                                    // If error, assue local save
+                                    jsPsych.data.localSave('digit-span_results.csv', 'csv');
+                                }
+                            }
+                        });
+                    })
+                }
+
+            });
+        });
+
+
+
+
+
+
+
+/* ************************************ */
+/* Define helper functions */
+/* ************************************ */
+
+
+function evalAttentionChecks() {
+    var check_percent = 1
+    if (run_attention_checks) {
+        var attention_check_trials = jsPsych.data.getTrialsOfType('attention-check')
+        var checks_passed = 0
+        for (var i = 0; i < attention_check_trials.length; i++) {
+            if (attention_check_trials[i].correct === true) {
+                checks_passed += 1
+            }
+        }
+        check_percent = checks_passed / attention_check_trials.length
+    }
+    return check_percent
+}
+
+var getInstructFeedback = function () {
+    return '<div class = centerbox><p class = center-block-text>' + feedback_instruct_text +
+        '</p></div>'
+}
+
+var getInstructTrain = function () {
+    return '<div class = centerbox><p class = center-block-text>' + cont_train +
+        '</p></div>'
+}
+
+var arraysEqual = function (arr1, arr2) {
+    if (arr1.length !== arr2.length)
+        return false;
+    for (var i = arr1.length; i--;) {
+        if (arr1[i] !== arr2[i])
+            return false;
+    }
+    return true;
+}
+
+var randomDraw = function (lst) {
+    var index = Math.floor(Math.random() * (lst.length))
+    return lst[index]
+}
+
+
+//part rina
+var setVisualStims = function () {
+    curr_seq = []
+    visual_stim_array = []
+    time_array = []
+    var nums = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    var last_num = 0
+    var content_push = '';
+    for (var i = 0; i < num_digits; i++) {
+        var num = randomDraw(nums.filter(function (x) { return Math.abs(x - last_num) > 2 }))
+        last_num = num
+        curr_seq.push(num)
+     
+        content_push = '<div class = centerbox><div class = digit-span-text>' + num.toString() +
+            '</div></div>';
+        visual_stim_array.push(content_push)
+        time_array.push(stim_time)
+    }
+    console.log("curr sequence from visual set stims: " + curr_seq);
+    total_time = num_digits * (stim_time + gap_time)
+}
+
+//part iqa
+var setVisualStims_train = function () {
+    trainv_curr_seq = []
+    train_visual_stim_array = []
+    time_array = []
+    var nums = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    var last_num = 0
+    var content_push = '';
+    for (var i = 0; i < trainv_num_digits; i++) {
+        var num = randomDraw(nums.filter(function (x) { return Math.abs(x - last_num) > 2 }))
+        last_num = num
+        trainv_curr_seq.push(num)
+     
+        content_push = '<div class = centerbox><div class = digit-span-text>' + num.toString() +
+            '</div></div>';
+        train_visual_stim_array.push(content_push)
+        time_array.push(stim_time)
+    }
+    console.log("curr sequence from visual set stims (train): " + trainv_curr_seq);
+    total_time = trainv_num_digits * (stim_time + gap_time)
+}
+
+
+//part rina
+var setAudioStims = function () {
+    audio_curr_seq = []
+    audio_stim_array = []
+    time_array = []
+    var nums = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    var last_num = 0
+    var content_push = '';
+    for (var i = 0; i < audio_num_digits; i++) {
+        var num = randomDraw(nums.filter(function (x) { return Math.abs(x - last_num) > 2 }))
+        last_num = num
+        audio_curr_seq.push(num)
+        content_push = '<audio autoplay><source src="sound/Audio' + num + '.mp3" type="audio/ogg"></audio>';
+        audio_stim_array.push(content_push)
+        time_array.push(stim_time)
+    }
+    console.log("current sequence from audio set stim: " + audio_curr_seq);
+    total_time = audio_num_digits * (stim_time + gap_time)
+}
+
+
+//part iqa
+var setAudioStims_train = function () {
+    traina_curr_seq = []
+    train_audio_stim_array = []
+    time_array = []
+    var nums = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    var last_num = 0
+    var content_push = '';
+    for (var i = 0; i < traina_num_digits; i++) {
+        var num = randomDraw(nums.filter(function (x) { return Math.abs(x - last_num) > 2 }))
+        last_num = num
+        traina_curr_seq.push(num)
+     
+        content_push = '<audio autoplay><source src="sound/Audio' + num + '.mp3" type="audio/ogg"></audio>';
+        train_audio_stim_array.push(content_push)
+        time_array.push(stim_time_train)
+    }
+    console.log("curr sequence from audio set stim(train): " + traina_curr_seq);
+    total_time = traina_num_digits * (stim_time_train + gap_time)
+}
+
+
+//rina
+var getTestText = function () {
+    return '<div class = centerbox><div class = center-text>' + num_digits + ' Digit</p></div>'
+}
+
+
+//iqa
+var getTrainTextv = function () {
+    return '<div class = centerbox><div class = center-text>' + trainv_num_digits + ' Digit</p></div>'
+}
+
+
+//rina
+var getTestTextAudio = function () {
+    return '<div class = centerbox><div class = center-text>' + audio_num_digits + ' Digit</p></div>'
+}
+
+//iqa
+var getTrainTexta = function () {
+    return '<div class = centerbox><div class = center-text>' + traina_num_digits + ' Digit</p></div>'
+}
+
+
+//rina
+var getVisualStims = function () {
+    return visual_stim_array
+}
+
+
+//iqa
+var getVisualStims_train = function () {
+    return train_visual_stim_array
+}
+
+
+//rina
+var getAudioStims = function () {
+    return audio_stim_array
+}
+
+
+//iqa
+var getAudioStims_train = function () {
+    return train_audio_stim_array
+}
+
+var getTimeArray = function () {
+    return time_array
+}
+
+var getTotalTime = function () {
+    return total_time
+}
+
+var getFeedback = function () {
+    return '<div class = centerbox><div class = center-text>' + feedback + '</div></div>'
+}
+
+var recordClick = function (elm) {
+    response.push(Number($(elm).text()))
+}
+
+var clearResponse = function () {
+    response = []
+}
+
+
+
+/* ************************************ */
+/* Define experimental variables */
+/* ************************************ */
+// generic task variables
+var run_attention_checks = false
+var attention_check_thresh = 0.65
+var sumInstructTime = 0 //ms
+var instructTimeThresh = 0 ///in seconds
+
+// task specific variables
+
+//rina
+var num_digits = 4
+var audio_num_digits = 4
+var num_trials = 8
+var curr_seq = []
+var audio_curr_seq = []
+var stim_time = 1500
+var errors = 0 
+
+//iqa
+var trainv_num_digits = 4
+var traina_num_digits = 4
+var num_trials_train = 7
+var trainv_curr_seq = []
+var traina_curr_seq = []
+var stim_time_train = 1100
+var error_lim = 2  //from fuzzy, load determines how many errors allowed (retry) until it reduce one digit
+//console.log("error_lim: "+error_lim)
+var gap_time = 1500 
+var time_array = []
+var total_time = 0
+var response = []
+
+
+var response_grid =
+    '<div class = numbox>' +
+    '<button id = button_1 class = "square num-button" onclick = "recordClick(this)"><div class = content><div class = numbers>1</div></div></button>' +
+    '<button id = button_2 class = "square num-button" onclick = "recordClick(this)"><div class = content><div class = numbers>2</div></div></button>' +
+    '<button id = button_3 class = "square num-button" onclick = "recordClick(this)"><div class = content><div class = numbers>3</div></div></button>' +
+    '<button id = button_4 class = "square num-button" onclick = "recordClick(this)"><div class = content><div class = numbers>4</div></div></button>' +
+    '<button id = button_5 class = "square num-button" onclick = "recordClick(this)"><div class = content><div class = numbers>5</div></div></button>' +
+    '<button id = button_6 class = "square num-button" onclick = "recordClick(this)"><div class = content><div class = numbers>6</div></div></button>' +
+    '<button id = button_7 class = "square num-button" onclick = "recordClick(this)"><div class = content><div class = numbers>7</div></div></button>' +
+    '<button id = button_8 class = "square num-button" onclick = "recordClick(this)"><div class = content><div class = numbers>8</div></div></button>' +
+    '<button id = button_9 class = "square num-button" onclick = "recordClick(this)"><div class = content><div class = numbers>9</div></div></button>' +
+    '<button class = clear_button id = "ClearButton" onclick = "clearResponse()">Padam</button>' +
+    '<button class = submit_button id = "SubmitButton">Hantar</button></div>'
+
+/* ************************************ */
+/* Set up jsPsych blocks */
+/* ************************************ */
+// Set up attention check node
+var attention_check_block = {
+    type: 'attention-check',
+    data: {
+        trial_id: "attention_check"
+    },
+    timing_response: 180000,
+    response_ends_trial: true,
+    timing_post_trial: 200
+}
+
+var attention_node = {
+    timeline: [attention_check_block],
+    conditional_function: function () {
+        return run_attention_checks
+    }
+}
+
+
+//to insert username
+var user_data = { 
+    type: 'survey-text',
+    data: {
+        trial_id: "retrieve user data"
+    },
+    questions: ['<p class = center-block-text style = "font-size: 20px">Sila masukkan nama</p>'],
+    rows: [5],
+    columns: [25]
+};
+
+/* define static blocks */
+var feedback_instruct_text =
+    'Selamat datang ke ujian <strong>Span Digit</strong>. Eksperimen ini akan mengambil masa dalam 10 minit. Tekan <strong>enter</strong> untuk mulakan.'
+var feedback_instruct_block = {
+    type: 'poldrack-text',
+    cont_key: [13],
+    data: {
+        trial_id: "instruction"
+    },
+    text: getInstructFeedback,
+    timing_post_trial: 0,
+    timing_response: 180000
+};
+/// This ensures that the subject does not read through the instructions too quickly.  If they do it too quickly, then we will go over the loop again.
+var instructions_block = {
+    type: 'poldrack-instructions',
+    data: {
+        trial_id: "instruction"
+    },
+    pages: [
+        '<div class = centerbox><p class = block-text>Dalam ujian ini, anda dikehendaki mengingati urutan nombor yang ditunjukkan di skrin. Masukkan nombor yang ditunjukkan mengikut urutan dengan menggunakan pad kekunci yang disediakan. Anda dilarang menulis urutan nombor di atas kertas atau menggunakan alatan lain untuk menghafal urutan nombor tersebut.</p>'
+    ],
+    allow_keys: false,
+    show_clickable_nav: true,
+    timing_post_trial: 1000
+};
+
+var instruction_node = {
+    timeline: [feedback_instruct_block, instructions_block],
+    /* This function defines stopping criteria */
+    loop_function: function (data) {
+        for (i = 0; i < data.length; i++) {
+            if ((data[i].trial_type == 'poldrack-instructions') && (data[i].rt != -1)) {
+                rt = data[i].rt
+                sumInstructTime = sumInstructTime + rt
+            }
+        }
+        if (sumInstructTime <= instructTimeThresh * 1000) {
+            feedback_instruct_text =
+                'Ambil masa yang mencukupi untuk memahami arahan yang diberikan. Tekan <strong>enter</strong> untuk teruskan.'
+            return true
+        } else if (sumInstructTime > instructTimeThresh * 1000) {
+            feedback_instruct_text =
+                'Arahan tamat. Tekan <strong>enter</strong> untuk teruskan.'
+            return false
+        }
+    }
+}
+
+/* define static blocks */
+var trainv_instruct_text =
+    'Selamat datang ke latihan <strong>Span Digit (Visual)</strong>. Eksperimen ini akan mengambil masa dalam 10 minit. Tekan <strong>enter</strong> untuk mulakan.'
+var trainv_instruct_block = {
+    type: 'poldrack-text',
+    cont_key: [13],
+    data: {
+        trial_id: "instruction"
+    },
+    text: getInstructFeedback,
+    timing_post_trial: 0,
+    timing_response: 180000
+};
+/// This ensures that the subject does not read through the instructions too quickly.  If they do it too quickly, then we will go over the loop again.
+var trainv_instructions_block = {
+    type: 'poldrack-instructions',
+    data: {
+        trial_id: "instruction"
+    },
+    pages: [
+        '<div class = centerbox><p class = block-text>Dalam ujian ini, anda dikehendaki mengingati urutan nombor yang ditunjukkan di skrin. Masukkan nombor yang ditunjukkan mengikut urutan dengan menggunakan pad kekunci yang disediakan. Anda dilarang menulis urutan nombor di atas kertas atau menggunakan alatan lain untuk menghafal urutan nombor tersebut.</p>'
+    ],
+    allow_keys: false,
+    show_clickable_nav: true,
+    timing_post_trial: 1000
+};
+
+var trainv_instruction_node = {
+    timeline: [trainv_instruct_block, trainv_instructions_block],
+    /* This function defines stopping criteria */
+    loop_function: function (data) {
+        for (i = 0; i < data.length; i++) {
+            if ((data[i].trial_type == 'poldrack-instructions') && (data[i].rt != -1)) {
+                rt = data[i].rt
+                sumInstructTime = sumInstructTime + rt
+            }
+        }
+        if (sumInstructTime <= instructTimeThresh * 1000) {
+            trainv_instruct_text =
+                'Ambil masa yang mencukupi untuk memahami arahan yang diberikan. Tekan <strong>enter</strong> untuk teruskan.'
+            return true
+        } else if (sumInstructTime > instructTimeThresh * 1000) {
+            trainv_instruct_text =
+                'Arahan tamat. Tekan <strong>enter</strong> untuk teruskan.'
+            return false
+        }
+    }
+}
+
+/* define static blocks */
+var traina_instruct_text =
+    'Selamat datang ke latihan <strong>Span Digit (Audio)</strong>. Eksperimen ini akan mengambil masa dalam 10 minit. Tekan <strong>enter</strong> untuk mulakan.'
+var traina_instruct_block = {
+    type: 'poldrack-text',
+    cont_key: [13],
+    data: {
+        trial_id: "instruction"
+    },
+    text: getInstructFeedback,
+    timing_post_trial: 0,
+    timing_response: 180000
+};
+/// This ensures that the subject does not read through the instructions too quickly.  If they do it too quickly, then we will go over the loop again.
+var traina_instructions_block = {
+    type: 'poldrack-instructions',
+    data: {
+        trial_id: "instruction"
+    },
+    pages: [
+        '<div class = centerbox><p class = block-text>Dalam ujian ini, anda dikehendaki mengingati urutan nombor yang ditunjukkan di skrin. Masukkan nombor yang ditunjukkan mengikut urutan dengan menggunakan pad kekunci yang disediakan. Anda dilarang menulis urutan nombor di atas kertas atau menggunakan alatan lain untuk menghafal urutan nombor tersebut.</p>'
+    ],
+    allow_keys: false,
+    show_clickable_nav: true,
+    timing_post_trial: 1000
+};
+
+var traina_instruction_node = {
+    timeline: [traina_instruct_block, traina_instructions_block],
+    /* This function defines stopping criteria */
+    loop_function: function (data) {
+        for (i = 0; i < data.length; i++) {
+            if ((data[i].trial_type == 'poldrack-instructions') && (data[i].rt != -1)) {
+                rt = data[i].rt
+                sumInstructTime = sumInstructTime + rt
+            }
+        }
+        if (sumInstructTime <= instructTimeThresh * 1000) {
+            traina_instruct_text =
+                'Ambil masa yang mencukupi untuk memahami arahan yang diberikan. Tekan <strong>enter</strong> untuk teruskan.'
+            return true
+        } else if (sumInstructTime > instructTimeThresh * 1000) {
+            traina_instruct_text =
+                'Arahan tamat. Tekan <strong>enter</strong> untuk teruskan.'
+            return false
+        }
+    }
+}
+
+var end_block = {
+    type: 'poldrack-text',
+    timing_response: 180000,
+    data: {
+        trial_id: "end",
+        exp_id: 'digit_span'
+    },
+    text: '<div class = centerbox><p class = center-block-text>Tahniah! Anda telah melengkapkan tugasan.</p><p class = center-block-text>Tekan <strong>enter</strong> untuk teruskan.</p></div>',
+    cont_key: [13],
+    timing_post_trial: 0
+};
+
+
+var start_visual_test_block = {
+    type: 'poldrack-single-stim',
+    is_html: true,
+    stimulus: getTestText,
+    data: {
+        trial_id: "test_intro"
+    },
+    choices: 'none',
+    timing_stim: 1000,
+    timing_response: 1000,
+    response_ends_trial: false,
+    timing_post_trial: 1000
+};
+
+var start_visual_train_block = {
+    type: 'poldrack-single-stim',
+    is_html: true,
+    stimulus: getTrainTextv,
+    data: {
+        trial_id: "test_intro"
+    },
+    choices: 'none',
+    timing_stim: 1000,
+    timing_response: 1000,
+    response_ends_trial: false,
+    timing_post_trial: 1000
+};
+
+var start_audio_test_block = {
+    type: 'poldrack-single-stim',
+    is_html: true,
+    stimulus: getTestTextAudio,
+    data: {
+        trial_id: "test_intro"
+    },
+    choices: 'none',
+    timing_stim: 1000,
+    timing_response: 1000,
+    response_ends_trial: false,
+    timing_post_trial: 1000
+};
+
+var start_audio_train_block = {
+    type: 'poldrack-single-stim',
+    is_html: true,
+    stimulus: getTrainTexta,
+    data: {
+        trial_id: "test_intro"
+    },
+    choices: 'none',
+    timing_stim: 1000,
+    timing_response: 1000,
+    response_ends_trial: false,
+    timing_post_trial: 1000
+};
+
+/* define test block */
+var test_visual_block = {
+    type: 'poldrack-multi-stim-multi-response',
+    stimuli: getVisualStims,
+    is_html: true,
+    timing_stim: getTimeArray,
+    timing_gap: gap_time,
+    choices: [
+        ['none']
+    ],
+    data: {
+        trial_id: "stim",
+        exp_stage: 'test'
+    },
+    timing_response: getTotalTime,
+    timing_post_trial: 0,
+    on_finish: function () {
+        jsPsych.data.addDataToLastTrial({
+            "sequence": curr_seq,
+            "num_digits": num_digits
+        })
+    }
+}
+
+var train_visual_block = {
+    type: 'poldrack-multi-stim-multi-response',
+    stimuli: getVisualStims_train,
+    is_html: true,
+    timing_stim: getTimeArray,
+    timing_gap: gap_time,
+    choices: [
+        ['none']
+    ],
+    data: {
+        trial_id: "stim",
+        exp_stage: 'test'
+    },
+    timing_response: getTotalTime,
+    timing_post_trial: 0,
+    on_finish: function () {
+        jsPsych.data.addDataToLastTrial({
+            "sequence": trainv_curr_seq,
+            "trainv_num_digits": trainv_num_digits
+        })
+    }
+}
+
+var test_audio_block = {
+    type: 'poldrack-multi-stim-multi-response',
+    stimuli: getAudioStims,
+    is_html: true,
+    timing_stim: getTimeArray,
+    timing_gap: gap_time,
+    choices: [
+        ['none']
+    ],
+    data: {
+        trial_id: "stim",
+        exp_stage: 'test'
+    },
+    timing_response: getTotalTime,
+    timing_post_trial: 0,
+    on_finish: function () {
+        jsPsych.data.addDataToLastTrial({
+            "sequence": audio_curr_seq,
+            "audio_num_digits": audio_num_digits
+        })
+    }
+}
+
+var train_audio_block = {
+    type: 'poldrack-multi-stim-multi-response',
+    stimuli: getAudioStims_train,
+    is_html: true,
+    timing_stim: getTimeArray,
+    timing_gap: gap_time,
+    choices: [
+        ['none']
+    ],
+    data: {
+        trial_id: "stim",
+        exp_stage: 'test'
+    },
+    timing_response: getTotalTime,
+    timing_post_trial: 0,
+    on_finish: function () {
+        jsPsych.data.addDataToLastTrial({
+            "sequence": traina_curr_seq,
+            "traina_num_digits": traina_num_digits
+        })
+    }
+}
+
+var visual_response_block = {
+    type: 'single-stim-button',
+    stimulus: response_grid,
+    button_class: 'submit_button',
+    data: {
+        trial_id: "response_visual",
+        exp_stage: 'test'
+    },
+    on_finish: function () {
+        jsPsych.data.addDataToLastTrial({
+            "response": response.slice(),
+            "sequence": curr_seq,
+            "num_digits": num_digits,
+            "condition": "forward"
+        })
+        var correct = false
+        var score = 0
+        
+        console.log("current sequence from user response: " + response);
+        console.log("next sequence from visual stimulus: " + curr_seq);
+        // staircase
+        if (arraysEqual(response, curr_seq)) {
+            num_digits += 1
+            feedback = '<span style="color:green">Betul!</span>'
+            stims = setVisualStims()
+            correct = true
+            score = 1
+
+        } else {
+            errors += 1
+            if (num_digits > 1 && errors == 2) {
+                num_digits -= 1
+                errors = 0
+            }
+            feedback = '<span style="color:red">Salah</span>'
+            stims = setVisualStims()
+        }
+
+        console.log(score);
+        jsPsych.data.addDataToLastTrial({
+            correct: correct,
+            score: score,
+            
+        })
+        response = []
+    },
+    timing_post_trial: 500
+}
+
+var train_visual_response_block = {
+    type: 'single-stim-button',
+    stimulus: response_grid,
+    button_class: 'submit_button',
+    data: {
+        trial_id: "response_train_visual",
+        exp_stage: 'test'
+    },
+    on_finish: function () {
+        jsPsych.data.addDataToLastTrial({
+            "response": response.slice(),
+            "sequence": trainv_curr_seq,
+            "num_digits": trainv_num_digits,
+            "condition": "forward"
+        })
+        var correct = false
+        var score = 0
+        
+        console.log("current sequence from user response: " + response);
+        console.log("next sequence from visual stimulus (train): " + trainv_curr_seq);
+        // staircase
+        if (arraysEqual(response, trainv_curr_seq)) {
+            trainv_num_digits += 1
+            feedback = '<span style="color:green">Betul!</span>'
+            stims = setVisualStims_train()
+            correct = true
+            score = 1
+
+        } else {
+            errors += 1
+            if (trainv_num_digits > 1 && errors == error_lim) {
+                trainv_num_digits -= 1
+                errors = 0
+            }
+            feedback = '<span style="color:red">Salah</span>'
+            stims = setVisualStims_train()
+        }
+
+        console.log(score);
+        jsPsych.data.addDataToLastTrial({
+            correct: correct,
+            score: score,
+            
+        })
+        response = []
+    },
+    timing_post_trial: 500
+}
+
+var train_audio_response_block = {
+    type: 'single-stim-button',
+    stimulus: response_grid,
+    button_class: 'submit_button',
+    data: {
+        trial_id: "response_train_audio",
+        exp_stage: 'test'
+    },
+    on_finish: function () {
+        jsPsych.data.addDataToLastTrial({
+            "response": response.slice(),
+            "sequence": traina_curr_seq,
+            "audio_num_digits": traina_num_digits,
+            "condition": "forward"
+        })
+        var correct = false
+        var score = 0
+        
+        console.log("current sequence from user response: " + response);
+        console.log("next sequence from audio stimulus (train): " + traina_curr_seq);
+        // staircase
+        if (arraysEqual(response, traina_curr_seq)) {
+            traina_num_digits += 1
+            feedback = '<span style="color:green">Betul!</span>'
+            stims = setAudioStims_train()
+            correct = true
+            score = 1
+        } else {
+            errors += 1
+            if (traina_num_digits > 1 && errors == error_lim) {
+                traina_num_digits -= 1
+                errors = 0
+            }
+            feedback = '<span style="color:red">Salah</span>'
+            stims = setAudioStims()
+        }
+        console.log(score);
+        jsPsych.data.addDataToLastTrial({
+            correct: correct,
+            score: score,
+            
+        })
+        response = []
+    },
+    timing_post_trial: 500
+}
+
+var audio_response_block = {
+    type: 'single-stim-button',
+    stimulus: response_grid,
+    button_class: 'submit_button',
+    data: {
+        trial_id: "response_audio",
+        exp_stage: 'test'
+    },
+    on_finish: function () {
+        jsPsych.data.addDataToLastTrial({
+            "response": response.slice(),
+            "sequence": audio_curr_seq,
+            "audio_num_digits": audio_num_digits,
+            "condition": "forward"
+        })
+        var correct = false
+        var score = 0
+        
+        console.log("current sequence from user response: " + response);
+        console.log("next sequence from audio stimulus: " + audio_curr_seq);
+        // staircase
+        if (arraysEqual(response, audio_curr_seq)) {
+            audio_num_digits += 1
+            feedback = '<span style="color:green">Betul!</span>'
+            stims = setAudioStims()
+            correct = true
+            score = 1
+        } else {
+            errors += 1
+            if (audio_num_digits > 1 && errors == 2) {
+                audio_num_digits -= 1
+                errors = 0
+            }
+            feedback = '<span style="color:red">Salah</span>'
+            stims = setAudioStims()
+        }
+        console.log(score);
+        jsPsych.data.addDataToLastTrial({
+            correct: correct,
+            score: score,
+            
+        })
+        response = []
+    },
+    timing_post_trial: 500
+}
+
+
+var feedback_block = {
+    type: 'poldrack-single-stim',
+    stimulus: getFeedback,
+    data: {
+        trial_id: "feedback"
+    },
+    is_html: true,
+    choices: 'none',
+    timing_stim: 1000,
+    timing_response: 1000,
+    response_ends_trial: true
+}
+
+// /* define static blocks */
+// var cont_train =
+//     'Welcome to the training mode. Press <strong>enter</strong> to begin.'
+// var train_instruct_block = {
+//     type: 'poldrack-text',
+//     cont_key: [13],
+//     data: {
+//         trial_id: "instruction"
+//     },
+//     text: getInstructTrain,
+//     timing_post_trial: 0,
+//     timing_response: 180000
+// };
+
+//part rina
+/* create experiment definition array */
+var digit_span_experiment = [];
+digit_span_experiment.push(user_data)
+digit_span_experiment.push(instruction_node);
+setVisualStims()
+var visual_stim_array = getVisualStims()
+for (i = 0; i < num_trials; i++) {
+    digit_span_experiment.push(start_visual_test_block)
+    digit_span_experiment.push(test_visual_block) // display numbers
+    digit_span_experiment.push(visual_response_block) // keypad
+    digit_span_experiment.push(feedback_block) // correct incorrect
+}
+digit_span_experiment.push(attention_node)
+digit_span_experiment.push(instruction_node); // added to display audio instruction (need to change text)
+setAudioStims()
+var audio_stim_array = getAudioStims()
+for (i = 0; i < num_trials; i++) {
+    digit_span_experiment.push(start_audio_test_block) // display audio
+    digit_span_experiment.push(test_audio_block) // play audio
+    digit_span_experiment.push(audio_response_block) // keypad
+    digit_span_experiment.push(feedback_block)
+}
+
+digit_span_experiment.push(end_block)
+
+
+//part iqa
+//start train session
+/*
+digit_span_experiment.push(trainv_instruction_node);
+setVisualStims_train()
+var train_visual_stim_array = getVisualStims_train()
+for (i = 0; i < num_trials_train; i++) {
+    digit_span_experiment.push(start_visual_train_block)
+    digit_span_experiment.push(train_visual_block) // display numbers
+    digit_span_experiment.push(train_visual_response_block) // keypad  train_audio_response_block
+    digit_span_experiment.push(feedback_block) // correct incorrect
+}
+
+digit_span_experiment.push(attention_node)
+digit_span_experiment.push(traina_instruction_node); // added to display audio instruction (need to change text)
+setAudioStims_train()
+var train_audio_stim_array = getAudioStims_train()
+for (i = 0; i < num_trials_train; i++) {
+    digit_span_experiment.push(start_audio_train_block) // display audio
+    digit_span_experiment.push(train_audio_block) // play audio
+    digit_span_experiment.push(train_audio_response_block) // keypad
+    digit_span_experiment.push(feedback_block)
+}
+
+digit_span_experiment.push(end_block)*/
+    </script>
+
+<!--
+    <script>
+        $(document).ready(function () {
+
+            jsPsych.init({
+                timeline: digit_span_experiment,
+                display_element: "getDisplayElement",
+                fullscreen: true,
+                on_trial_finish: function (data) {
+                    addID('digit-span')
+                },
+
+                on_finish: function (data) {
+
+                    // Serialize the data
+                    var promise = new Promise(function (resolve, reject) {
+                        var data = jsPsych.data.dataAsJSON();
+                        resolve(data);
+                    })
+
+                    promise.then(function (data) {
+
+
+                        $.ajax({
+                            type: "POST",
+                            url: '/save',
+                            data: { "data": data },
+                            success: function () { document.location = "/next" },
+                            dataType: "application/json",
+
+                            // Endpoint not running, local save
+                            error: function (err) {
+
+                                if (err.status == 200) {
+                                    document.location = "/next";
+                                } else {
+                                    // If error, assue local save
+                                    jsPsych.data.localSave('digit-span_results.json', 'json');
+                                }
+                            }
+                        });
+                    })
+                }
+
+            });
+        });
+    </script> -->
+</body>
+</html>
