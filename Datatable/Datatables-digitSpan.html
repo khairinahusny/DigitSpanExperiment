@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>Players Data</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.css">
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css">
+	<!-- susunan js penting -->
+	<!-- Load jQuery dulu baru load benda lain -->
+	<script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js"></script>
+</head>
+<body>
+	<div class="container">
+		<h3>Players data</h3>
+		<table id="sensor-data" class="display responsive nowrap table table-striped table-bordered" style="width:100%">
+	        <thead>
+	            <tr>
+	            	
+	            	<th>Student Name</th>
+	            	<th>Visual Score</th>
+	            	<th>Visual Duration</th>
+	            	<th>Auditory Score</th>
+	            	<th>Auditory Duration</th>
+	            	<th>Visual Result</th>
+	            	<th>Auditory Result</th>
+	            	<th>WMI Result</th>
+	            	<th>Date Created</th>
+	                
+	            </tr>
+	        </thead>
+	        <tfoot>
+	            <tr>
+	            	<th>Student Name</th>
+	            	<th>Visual Score</th>
+	            	<th>Visual Duration</th>
+	            	<th>Auditory Score</th>
+	            	<th>Auditory Duration</th>
+	            	<th>Visual Result</th>
+	            	<th>Auditory Result</th>
+	            	<th>WMI Result</th>
+	            	<th>Date Created</th>
+	                
+	            </tr>
+	        </tfoot>
+		</table>
+	</div>
+</body>
+<script type="text/javascript">
+	var username, visual_score, visual_duration, auditory_score, auditory_duration, visual_result, auditory_result, wmi_result, date_created;
+// Modify returned ajax json data before sending it to HTML table
+// Original post: refer bawah
+// https://medium.com/code-kings/datatables-js-how-to-modify-your-returned-ajax-json-data-before-sending-it-to-your-html-table-24a92244bc40
+$(document).ready(function() {
+    var table = $('#sensor-data').DataTable( {
+    	"paging": true,
+        'ajax'       : {
+		    "type"   : "GET",
+		    "url"    : "http://127.0.0.1:5000/data",
+		    "dataSrc": function (json) {
+		    	console.log(json);
+		    	var datas = json.data;
+		    	var return_data = new Array(); // kena biar, utk initialize
+
+		    	for(var i=0;i<datas.length;i++){
+		    		// ni boleh set variable
+		    		// cth saya store dalam var audiotory_duration
+		    		username = datas[i].username;
+		    		visual_score = datas[i].visual_score;
+		    		visual_duration = datas[i].visual_duration;
+		    		auditory_score = datas[i].auditory_score;
+		    		auditory_duration = datas[i].auditory_duration;
+		    		visual_result = datas[i].visual_result;
+		    		auditory_result = datas[i].auditory_result;
+		    		wmi_result = datas[i].wmi_result;
+		    		date_created = datas[i].date_created;
+
+			        return_data.push({
+			        	// Make some changes in the data (tambah HTML tag,etc)
+			        	'username': username,
+			        	'visual_score': visual_score,
+			        	'visual_duration': visual_duration,
+			        	'auditory_score': auditory_score,
+			        	'auditory_duration': auditory_duration,
+			        	'visual_result': visual_result,
+			        	'auditory_result': auditory_result,
+			        	'wmi_result': wmi_result,
+			        	'date_created': date_created // jangan lupa yg last x de comma
+			        	// key_datatables: value data
+			        	// cth 'audio_dur': auditory_duration
+			        })
+		      }
+		      return return_data;
+		    }
+		  },
+	  // Map modified JSON data to table column, buat in order yang nak displayed dalam table
+
+	  //make sure susunan bawah ni,sama dengan susunan yg kita set dalam <th>
+	  "columns"    : [
+	  	{'data': 'username'},
+	  	{'data': 'visual_score'},
+	  	{'data': 'visual_duration'},
+	  	{'data': 'auditory_score'},
+	  	{'data': 'auditory_duration'},
+	  	{'data': 'visual_result'},
+	  	{'data': 'auditory_result'},
+	  	{'data': 'wmi_result'},
+	  	{'data': 'date_created'}
+	    
+	  ]
+	});
+
+} );
+
+</script>
+</html>
